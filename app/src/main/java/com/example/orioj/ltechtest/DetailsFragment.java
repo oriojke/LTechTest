@@ -1,7 +1,7 @@
 package com.example.orioj.ltechtest;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 
 import static com.bumptech.glide.request.RequestOptions.centerCropTransform;
+import static com.bumptech.glide.request.RequestOptions.placeholderOf;
 
 /**
  * Created by orioj on 24.07.2017.
@@ -29,6 +30,7 @@ public class DetailsFragment extends Fragment {
         tvBody.setText(data.getText());
         Glide.with(this)
                 .load(data.getImage())
+                .apply(placeholderOf(R.drawable.android_logo))
                 .apply(centerCropTransform())
                 .into(ivImage);
         return v;

@@ -20,6 +20,7 @@ import org.w3c.dom.Text;
 import java.util.List;
 
 import static com.bumptech.glide.request.RequestOptions.centerCropTransform;
+import static com.bumptech.glide.request.RequestOptions.placeholderOf;
 
 /**
  * Created by orioj on 24.07.2017.
@@ -52,8 +53,10 @@ public class CardsAdapter extends RecyclerView.Adapter<CardsAdapter.ViewHolder>{
 
         @Override
         public void onClick(View v) {
-            MainActivity mainActivity = (MainActivity) getActivity(v);
-            if(mainActivity != null) mainActivity.onCardClicked(data);
+            DetailsFragment details = new DetailsFragment();
+            details.setData(data);
+            FragmentSwitcher switcher = (FragmentSwitcher)getActivity(v);
+            switcher.switchFragment(details);
         }
 
         private Activity getActivity(View v) {
@@ -86,6 +89,7 @@ public class CardsAdapter extends RecyclerView.Adapter<CardsAdapter.ViewHolder>{
         holder.tvDate.setText(item.getDate());
         Glide.with(holder.tvHeader.getContext())
                 .load(item.getImage())
+                .apply(placeholderOf(R.drawable.android_logo))
                 .apply(centerCropTransform())
                 .into(holder.ivImage);
         holder.setData(item);
@@ -95,6 +99,4 @@ public class CardsAdapter extends RecyclerView.Adapter<CardsAdapter.ViewHolder>{
     public int getItemCount() {
         return cards == null ? 0 : cards.size();
     }
-
-
 }

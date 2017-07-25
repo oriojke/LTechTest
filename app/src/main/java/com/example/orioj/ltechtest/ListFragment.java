@@ -2,6 +2,7 @@ package com.example.orioj.ltechtest;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,6 +13,8 @@ import com.example.orioj.ltechtest.api.Ltech;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -23,11 +26,17 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by orioj on 24.07.2017.
  */
 
-public class ListFragment extends Fragment {
+public class ListFragment extends Fragment  implements SwipeRefreshLayout.OnRefreshListener {
 
     private static Ltech LtechApi;
     private Retrofit httpHandler;
     private List<JsonDataModel> dataList;
+    private SwipeRefreshLayout mrefLayout;
+
+    private Timer mTimer;
+    private TimerTask mTimerTask;
+    private boolean isTimerRunning = false;
+    private int mSecondsPassed = 0;
 
     private RecyclerView mRecyclerView;
 
@@ -42,6 +51,8 @@ public class ListFragment extends Fragment {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         LtechApi = httpHandler.create(Ltech.class);
+
+        mTimer = new Timer();
     }
 
     @Override
@@ -56,11 +67,21 @@ public class ListFragment extends Fragment {
         CardsAdapter adapter = new CardsAdapter(dataList);
         mRecyclerView.setAdapter(adapter);
 
-        // mText = (TextView) findViewById(R.id.textfield);
+        mrefLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshLayout);
+        mrefLayout.setOnRefreshListener(this);
 
+        refreshList();
+        startTimer();
+
+        return view;
+    }
+
+    public void refreshList(){
+        //if(isTimerRunning) mTimer.cancel();
         LtechApi.getData().enqueue(new Callback<List<JsonDataModel>>() {
             @Override
             public void onResponse(Call<List<JsonDataModel>> call, Response<List<JsonDataModel>> response) {
+                dataList.clear();
                 dataList.addAll(response.body());
                 mRecyclerView.getAdapter().notifyDataSetChanged();
             }
@@ -69,7 +90,32 @@ public class ListFragment extends Fragment {
             public void onFailure(Call<List<JsonDataModel>> call, Throwable t) {
             }
         });
-
-        return view;
+        //startTimer();
     }
+
+    @Override
+    public void onRefresh() {
+        mSecondsPassed = 0;
+        mrefLayout.setRefreshing(true);
+        refreshList();
+        mrefLayout.setRefreshing(false);
+    }
+
+    public void startTimer(){
+        mTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                if(mSecondsPassed == 30){
+                    refreshList();
+                    mSecondsPassed = 0;
+                }
+                else
+                    mSecondsPassed++;
+            }
+        };
+        mSecondsPassed = 0;
+        mTimer.scheduleAtFixedRate(mTimerTask, 0, 1000);
+        isTimerRunning = true;
+    }
+
 }
